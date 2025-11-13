@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Library of Dreams</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+* { box-sizing: border-box; }
+
+:root {
+--bg-image: url("p.png"); /* default: starry sky */
+--glass-bg: rgba(15, 23, 42, 0.86);
+--accent: #a855f7;
+--accent-soft: rgba(168, 85, 247, 0.2);
+}
+
+body {
+margin: 0;
+font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+min-height: 100vh;
+color: #e5e7eb;
+background-image:
+radial-gradient(circle at top, rgba(15,23,42,0.9) 0, rgba(15,23,42,0.8) 35%, rgba(15,23,42,0.9) 60%, #020617 100%),
+var(--bg-image);
+background-size: cover;
+background-position: center;
+background-attachment: fixed;
+transition: background-image 0.7s ease-out, background-position 0.7s ease-out;
+}
+
+.overlay {
+min-height: 100vh;
+background: radial-gradient(circle at top, rgba(15,23,42,0.15) 0, rgba(15,23,42,0.75) 40%, rgba(15,23,42,0.92) 80%);
+padding: 20px 12px 32px;
+display: flex;
+align-items: stretch;
+justify-content: center;
+}
+
+.app {
+width: min(1080px, 100%);
+display: flex;
+flex-direction: column;
+gap: 14px;
+}
+
+header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 10px;
+padding: 6px 2px;
+}
+
+header h1 {
+margin: 0;
+font-size: 1.6rem;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+}
+
+.subtitle {
+margin: 0;
+font-size: 0.9rem;
+opacity: 0.75;
+}
+
+.layout {
+display: grid;
+grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.2fr);
+gap: 14px;
+}
+
+@media (max-width: 900px) {
+.layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+.panel {
+background: var(--glass-bg);
+border-radius: 18px;
+border: 1px solid rgba(148,163,184,0.4);
+box-shadow: 0 20px 45px rgba(0,0,0,0.75);
+backdrop-filter: blur(12px);
+padding: 16px 16px 14px;
+position: relative;
+overflow: hidden;
+}
+
+.panel::before {
+content: "";
+position: absolute;
+inset: 0;
+pointer-events: none;
+background: radial-gradient(circle at top left, rgba(248,250,252,0.08) 0, transparent 55%);
+opacity: 0.85;
+}
+
+.panel-inner {
+position: relative;
+z-index: 1;
+}
+
+.panel-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 10px;
+margin-bottom: 10px;
+}
+
+.panel-title {
+font-size: 0.85rem;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+opacity: 0.8;
+}
+
+.pill {
+font-size: 0.75rem;
+padding: 3px 9px;
+border-radius: 999px;
+border: 1px solid rgba(148,163,184,0.6);
+background: rgba(15,23,42,0.8);
+display: inline-flex;
+align-items: center;
+gap: 6px;
+white-space: nowrap;
+}
+
+.pill-dot {
+width: 8px;
+height: 8px;
+border-radius: 999px;
+background: #22c55e;
+}
+
+.dream-title {
+font-size: 1.4rem;
+margin: 0 0 4px;
+color: #e0e7ff;
+}
+
+.dream-meta {
+font-size: 0.8rem;
+opacity: 0.75;
+display: flex;
+flex-wrap: wrap;
+gap: 6px;
+margin-bottom: 6px;
+}
+
+.dream-tags {
+display: flex;
+flex-wrap: wrap;
+gap: 5px;
+margin-bottom: 8px;
+}
+
+.tag {
+font-size: 0.75rem;
+padding: 3px 8px;
+border-radius: 999px;
+border: 1px solid rgba(148,163,184,0.6);
+background: rgba(15,23,42,0.9);
+opacity: 0.95;
+}
+
+.dream-text {
+font-size: 0.95rem;
+line-height: 1.6;
+margin: 6px 0 10px;
+white-space: pre-wrap;
+}
+
+.bg-label {
+font-size: 0.8rem;
+opacity: 0.7;
+}
+
+.controls {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+margin-top: 6px;
+}
+
+button {
+border-radius: 999px;
+border: 1px solid rgba(148,163,184,0.7);
+background: rgba(15,23,42,0.9);
+color: #e5e7eb;
+padding: 7px 12px;
+font-size: 0.85rem;
+cursor: pointer;
+display: inline-flex;
+align-items: center;
+gap: 6px;
+transition: background 0.15s ease, transform 0.08s ease, border-color 0.15s ease;
+}
+
+button.primary {
+border-color: var(--accent);
+background: linear-gradient(135deg, #7c3aed, #ec4899);
+}
+
+button.secondary {
+border-style: dashed;
+}
+
+button.danger {
+border-color: rgba(248,113,113,0.8);
+color: #fecaca;
+}
+
+button:hover {
+transform: translateY(-1px);
+filter: brightness(1.05);
+}
+
+button:active {
+transform: translateY(0);
+filter: brightness(0.97);
+}
+
+.hint {
+margin-top: 6px;
+font-size: 0.8rem;
+opacity: 0.7;
+}
+
+.archive-list {
+margin: 4px 0 0;
+padding: 0;
+list-style: none;
+max-height: 360px;
+overflow: auto;
+scrollbar-width: thin;
+scrollbar-color: #4b5563 transparent;
+font-size: 0.85rem;
+}
+
+.archive-list::-webkit-scrollbar {
+width: 6px;
+}
+.archive-list::-webkit-scrollbar-track {
+background: transparent;
+}
+.archive-list::-webkit-scrollbar-thumb {
+background: #4b5563;
+border-radius: 999px;
+}
+
+.archive-item {
+border-radius: 11px;
+border: 1px solid rgba(148,163,184,0.4);
+padding: 8px 9px;
+margin-bottom: 6px;
+background: rgba(15,23,42,0.9);
+cursor: pointer;
+display: flex;
+flex-direction: column;
+gap: 2px;
+}
+
+.archive-item:hover {
+border-color: var(--accent);
+background: rgba(15,23,42,0.96);
+}
+
+.archive-title-line {
+display: flex;
+justify-content: space-between;
+gap: 6px;
+align-items: center;
+}
+
+.archive-title {
+font-weight: 500;
+color: #e5e7eb;
+}
+
+.archive-bg {
+font-size: 0.7rem;
+opacity: 0.65;
+}
+
+.archive-snippet {
+font-size: 0.78rem;
+opacity: 0.8;
+}
+
+.empty-state {
+margin-top: 8px;
+font-size: 0.8rem;
+opacity: 0.7;
+}
+
+.archive-footer {
+margin-top: 10px;
+font-size: 0.75rem;
+opacity: 0.65;
+display: flex;
+justify-content: space-between;
+gap: 8px;
+align-items: center;
+}
+
+.badge-soft {
+padding: 3px 8px;
+border-radius: 999px;
+background: rgba(15,23,42,0.8);
+border: 1px solid rgba(148,163,184,0.5);
+font-size: 0.75rem;
+}
+
+.bg-chip-row {
+display: flex;
+flex-wrap: wrap;
+gap: 6px;
+margin-top: 4px;
+}
+
+.bg-chip {
+padding: 3px 7px;
+border-radius: 999px;
+font-size: 0.75rem;
+border: 1px solid rgba(148,163,184,0.6);
+cursor: pointer;
+background: rgba(15,23,42,0.85);
+opacity: 0.85;
+}
+
+.bg-chip.active {
+border-color: var(--accent);
+background: var(--accent-soft);
+opacity: 1;
+}
+
+.toast {
+position: fixed;
+left: 50%;
+transform: translateX(-50%);
+bottom: 20px;
+background: rgba(15,23,42,0.98);
+border-radius: 999px;
+padding: 7px 14px;
+font-size: 0.8rem;
+border: 1px solid rgba(148,163,184,0.9);
+box-shadow: 0 14px 35px rgba(0,0,0,0.8);
+animation: toast-in 0.15s ease-out;
+z-index: 1000;
+}
+
+@keyframes toast-in {
+from { transform: translate(-50%, 10px); opacity: 0; }
+to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.seed {
+font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+font-size: 0.78rem;
+opacity: 0.7;
+margin-top: 2px;
+}
+</style>
+</head>
+<body>
+<div class="overlay">
+<div class="app">
+<header>
+<div>
+<h1>Library of Dreams</h1>
+<p class="subtitle">A tiny archive of surreal, generated dreams</p>
+</div>
+<div class="pill">
+<span class="pill-dot"></span>
+Offline-friendly · Just text + your images
+</div>
+</header>
+
+<div class="layout">
+<!-- Current dream panel -->
+<section class="panel">
+<div class="panel-inner">
+<div class="panel-header">
+<div class="panel-title">Current Dream</div>
+<div class="bg-label" id="bgLabel">Background: starry sky (p.png)</div>
+</div>
+
+<h2 class="dream-title" id="dreamTitle">No dream yet</h2>
+<div class="dream-meta" id="dreamMeta">
+<span>Click “Generate dream” to begin.</span>
+</div>
+
+<div class="dream-tags" id="dreamTags"></div>
+
+<div class="dream-text" id="dreamText">
+This panel will show a generated dream description. You can save dreams into your personal archive on the right.
+</div>
+
+<div class="seed" id="dreamSeed"></div>
+
+<div class="bg-chip-row" id="bgChipRow">
+<!-- background chips will be filled by JS -->
+</div>
+
+<div class="controls">
+<button class="primary" id="generateBtn">✨ Generate dream</button>
+<button class="secondary" id="saveBtn">📚 Save to library</button>
+</div>
+
+<p class="hint">
+Tip: you can click on backgrounds to force a specific mood, then generate again.
+</p>
+</div>
+</section>
+
+<!-- Archive panel -->
+<aside class="panel">
+<div class="panel-inner">
+<div class="panel-header">
+<div class="panel-title">Saved Dreams</div>
+<span class="badge-soft" id="archiveCount">0 entries</span>
+</div>
+
+<ul class="archive-list" id="archiveList"></ul>
+<p class="empty-state" id="archiveEmpty">
+Your library is empty. Save a dream to keep it here.
+</p>
+
+<div class="archive-footer">
+<span>Click a saved dream to load it into the main view.</span>
+<button class="danger" id="clearBtn">🗑 Clear library</button>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</div>
+
+<script>
+// ============ BACKGROUNDS (your images) ============
+// Make sure these image files are in the same folder as this HTML:
+// i.png → foggy forest
+// p.png → starry sky
+// j.png → room with lamp
+// k.png → space
+// o.png → city at night
+const BACKGROUNDS = [
+{ id: "forest", name: "foggy forest", file: "i.png" },
+{ id: "stars", name: "starry sky", file: "p.png" },
+{ id: "room", name: "lamp-lit room", file: "j.png" },
+{ id: "space", name: "cosmos", file: "k.png" },
+{ id: "city", name: "city at night", file: "o.png" }
+];
+
+// ============ DREAM DATA SNIPPETS ============
+const dreamOpenings = [
+"You drift into a quiet dream where",
+"In tonight's dream,",
+"Somewhere between sleep and waking,",
+"You find yourself in a strange place where",
+"A gentle voice whispers, and suddenly"
+];
+
+const dreamSubjects = [
+"a faceless crowd moves in slow motion",
+"your childhood home floats above a dark ocean",
+"a cat made of starlight sits beside you",
+"endless staircases spiral into the sky",
+"the moon is much closer than it should be",
+"paper birds circle around your head",
+"your reflection steps out of the mirror",
+"every clock you see is melting",
+"a doorway appears in the middle of the street",
+"you are walking through a city that knows your name"
+];
+
+const dreamMotifs = [
+"time feels soft and flexible",
+"every sound echoes like it is underwater",
+"colors are too bright and slightly wrong",
+"gravity forgets how to work properly",
+"you can understand what the wind is trying to say",
+"your thoughts appear as glowing symbols in the air",
+"every step you take leaves a trail of light",
+"you are certain you have been here before",
+"you keep finding letters addressed to you from the future",
+"everyone you meet knows a secret about you"
+];
+
+const dreamTwists = [
+"You realize nothing in this place has a shadow.",
+"Suddenly, everyone stops moving and looks directly at you.",
+"You notice that the sky is actually a painted ceiling.",
+"When you speak, someone else’s voice comes out.",
+"A quiet bell rings three times, and everything changes color.",
+"Every door you open leads back to the same room.",
+"Your footsteps sound like someone else's footsteps.",
+"You recognize the song playing in the distance, but you have never heard it before.",
+"You reach out to touch something and your hand passes through it like fog.",
+"The dream starts to repeat itself, but with one detail slightly wrong each time."
+];
+
+const feelings = [
+"calm curiosity",
+"gentle dread",
+"a strange nostalgia",
+"bittersweet comfort",
+"electric excitement",
+"slow, heavy tiredness",
+"peaceful acceptance",
+"quiet anxiety",
+"melancholic warmth",
+"childlike wonder"
+];
+
+const tagsByBackground = {
+forest: ["fog", "whispers", "branches", "moss"],
+stars: ["stars", "silence", "infinity", "cold light"],
+room: ["lamplight", "walls", "memory", "closed space"],
+space: ["cosmos", "weightless", "orbit", "silence"],
+city: ["neon", "windows", "crowds", "night air"]
+};
+
+// ============ STATE ============
+const STORAGE_KEY = "dreamLibrary_v1";
+let currentDream = null;
+let currentBackgroundId = "stars"; // default background
+let archive = loadArchive();
+
+// ============ UTILITIES ============
+function rand(arr) {
+return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randInt(min, max) {
+return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function createSeed() {
+// simple seed for fun; not cryptographic
+const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+const part1 = Date.now().toString(36).toUpperCase();
+const part2 = letters[randInt(0, letters.length - 1)] + letters[randInt(0, letters.length - 1)];
+return `DRM-${part1}-${part2}`;
+}
+
+function truncate(str, max) {
+return str.length > max ? str.slice(0, max - 1) + "…" : str;
+}
+
+function showToast(message) {
+const t = document.createElement("div");
+t.className = "toast";
+t.textContent = message;
+document.body.appendChild(t);
+setTimeout(() => {
+t.style.opacity = "0";
+t.style.transform = "translate(-50%, 4px)";
+}, 1800);
+setTimeout(() => t.remove(), 2300);
+}
+
+// ============ BACKGROUND HANDLING ============
+function setBackgroundById(id) {
+const bg = BACKGROUNDS.find(b => b.id === id) || BACKGROUNDS[1]; // default to stars
+currentBackgroundId = bg.id;
+document.documentElement.style.setProperty("--bg-image", `url("${bg.file}")`);
+
+const label = document.getElementById("bgLabel");
+label.textContent = `Background: ${bg.name} (${bg.file})`;
+
+// highlight active chip
+document.querySelectorAll(".bg-chip").forEach(chip => {
+chip.classList.toggle("active", chip.dataset.bg === bg.id);
+});
+}
+
+function renderBackgroundChips() {
+const row = document.getElementById("bgChipRow");
+row.innerHTML = "";
+BACKGROUNDS.forEach(bg => {
+const chip = document.createElement("button");
+chip.type = "button";
+chip.className = "bg-chip" + (bg.id === currentBackgroundId ? " active" : "");
+chip.dataset.bg = bg.id;
+chip.textContent = bg.name;
+chip.addEventListener("click", () => {
+setBackgroundById(bg.id);
+if (currentDream) {
+currentDream.backgroundId = bg.id;
+currentDream.backgroundName = bg.name;
+updateCurrentDreamUI();
+}
+});
+row.appendChild(chip);
+});
+}
+
+// ============ DREAM GENERATION ============
+function generateDream() {
+const bg = BACKGROUNDS.find(b => b.id === currentBackgroundId) || BACKGROUNDS[1];
+const opening = rand(dreamOpenings);
+const subject = rand(dreamSubjects);
+const motif = rand(dreamMotifs);
+const twist = rand(dreamTwists);
+const feeling = rand(feelings);
+
+const titleOptions = [
+"The " + rand(["Endless", "Familiar", "Distant", "Soft", "Flickering", "Echoing"]) + " " + rand(["Room", "Path", "Sky", "Window", "Forest", "Signal"]),
+"Dream of " + rand(["Glass Steps", "Silent Waves", "Hidden Faces", "Neon Rain", "Falling Stars"]),
+"Where " + rand(["Time Slows", "Nobody Speaks", "Doors Forget", "Shadows Listen"]),
+rand(["Night Archive", "Third Moon", "Static Sea", "Closed City", "Ceiling of Stars"])
+];
+const title = rand(titleOptions);
+
+const text = [
+`${opening} ${subject}.`,
+`Here, ${motif}.`,
+twist,
+`Throughout the dream you feel ${feeling}, as if the world is trying to tell you something just slightly out of reach.`
+].join(" ");
+
+const seed = createSeed();
+
+const bgTags = tagsByBackground[bg.id] || [];
+const tags = [
+bg.name,
+feeling,
+rand(["loop", "signal", "memory", "fragment", "echo"]),
+...bgTags.slice(0, 2)
+];
+
+currentDream = {
+id: seed,
+title,
+text,
+feeling,
+backgroundId: bg.id,
+backgroundName: bg.name,
+createdAt: new Date().toISOString(),
+tags
+};
+
+updateCurrentDreamUI();
+}
+
+function updateCurrentDreamUI() {
+const titleEl = document.getElementById("dreamTitle");
+const metaEl = document.getElementById("dreamMeta");
+const tagsEl = document.getElementById("dreamTags");
+const textEl = document.getElementById("dreamText");
+const seedEl = document.getElementById("dreamSeed");
+
+if (!currentDream) {
+titleEl.textContent = "No dream yet";
+metaEl.innerHTML = "<span>Click “Generate dream” to begin.</span>";
+tagsEl.innerHTML = "";
+textEl.textContent = "This panel will show a generated dream description.";
+seedEl.textContent = "";
+return;
+}
+
+const bg = BACKGROUNDS.find(b => b.id === currentDream.backgroundId);
+titleEl.textContent = currentDream.title;
+
+const date = new Date(currentDream.createdAt);
+const dateStr = date.toLocaleString(undefined, { hour: "2-digit", minute: "2-digit", year: "numeric", month: "short", day: "numeric" });
+
+metaEl.innerHTML = "";
+const metaFeeling = document.createElement("span");
+metaFeeling.textContent = "Mood: " + currentDream.feeling;
+const metaBg = document.createElement("span");
+metaBg.textContent = "Place: " + (bg ? bg.name : "unknown");
+const metaHint = document.createElement("span");
+metaHint.textContent = "Generated: " + dateStr;
+
+[metaFeeling, metaBg, metaHint].forEach(el => metaEl.appendChild(el));
+
+tagsEl.innerHTML = "";
+currentDream.tags.forEach(tag => {
+const t = document.createElement("span");
+t.className = "tag";
+t.textContent = tag;
+tagsEl.appendChild(t);
+});
+
+textEl.textContent = currentDream.text;
+seedEl.textContent = "Seed: " + currentDream.id;
+}
+
+// ============ ARCHIVE HANDLING ============
+function loadArchive() {
+try {
+const raw = localStorage.getItem(STORAGE_KEY);
+if (!raw) return [];
+const parsed = JSON.parse(raw);
+if (!Array.isArray(parsed)) return [];
+return parsed;
+} catch {
+return [];
+}
+}
+
+function saveArchive() {
+try {
+localStorage.setItem(STORAGE_KEY, JSON.stringify(archive));
+} catch (e) {
+console.warn("Failed to save archive:", e);
+}
+}
+
+function addCurrentDreamToArchive() {
+if (!currentDream) {
+showToast("Generate a dream first.");
+return;
+}
+
+// Avoid duplicates based on seed
+if (archive.some(d => d.id === currentDream.id)) {
+showToast("This dream is already in your library.");
+return;
+}
+
+archive.unshift(currentDream);
+saveArchive();
+renderArchive();
+showToast("Dream saved to library.");
+}
+
+function clearArchive() {
+if (!archive.length) {
+showToast("Library is already empty.");
+return;
+}
+if (!confirm("Clear all saved dreams from your library? This cannot be undone.")) return;
+archive = [];
+saveArchive();
+renderArchive();
+showToast("Library cleared.");
+}
+
+function renderArchive() {
+const list = document.getElementById("archiveList");
+const empty = document.getElementById("archiveEmpty");
+const count = document.getElementById("archiveCount");
+
+list.innerHTML = "";
+count.textContent = archive.length + (archive.length === 1 ? " entry" : " entries");
+empty.style.display = archive.length ? "none" : "block";
+
+archive.forEach(dream => {
+const li = document.createElement("li");
+li.className = "archive-item";
+li.dataset.id = dream.id;
+
+const topLine = document.createElement("div");
+topLine.className = "archive-title-line";
+
+const titleSpan = document.createElement("span");
+titleSpan.className = "archive-title";
+titleSpan.textContent = truncate(dream.title, 34);
+
+const bgSpan = document.createElement("span");
+bgSpan.className = "archive-bg";
+const bg = BACKGROUNDS.find(b => b.id === dream.backgroundId);
+bgSpan.textContent = bg ? bg.name : "unknown";
+
+topLine.appendChild(titleSpan);
+topLine.appendChild(bgSpan);
+
+const snippet = document.createElement("div");
+snippet.className = "archive-snippet";
+snippet.textContent = truncate(dream.text, 96);
+
+li.appendChild(topLine);
+li.appendChild(snippet);
+
+li.addEventListener("click", () => {
+// load dream into current view
+currentDream = dream;
+setBackgroundById(dream.backgroundId);
+updateCurrentDreamUI();
+showToast("Loaded dream from library.");
+});
+
+list.appendChild(li);
+});
+}
+
+// ============ INITIALIZE ============
+window.addEventListener("DOMContentLoaded", () => {
+// Backgrounds
+setBackgroundById(currentBackgroundId);
+renderBackgroundChips();
+
+// Archive
+renderArchive();
+
+// Initial UI
+updateCurrentDreamUI();
+
+// Buttons
+document.getElementById("generateBtn").addEventListener("click", () => {
+generateDream();
+});
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+addCurrentDreamToArchive();
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+clearArchive();
+});
+});
+</script>
+</body>
+</html>
